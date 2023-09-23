@@ -1,8 +1,43 @@
-import numpy as np
 import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Load the input image
-input_image = cv2.imread(".\input_images\image-1.jpg", cv2.IMREAD_GRAYSCALE)
+input_image = cv2.imread("./input_images/image-1.jpg", cv2.IMREAD_GRAYSCALE)
+
+
+####################
+# Method to put text on the center of an image
+####################
+
+
+def put_text_on_center(
+    image,
+    text,
+    font=cv2.FONT_HERSHEY_SIMPLEX,
+    font_scale=0.5,
+    color=(255, 255, 255),
+    thickness=1,
+):
+    # Get the dimensions of the image
+    height, width = 320, 320
+
+    # Calculate the size of the text to be placed
+    text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+
+    # Calculate the position to place the text at the center
+    x = int((width - text_size[0]) / 2)
+    y = int((height + text_size[1]) / 2)
+
+    # Create a copy of the input image to avoid modifying the original image
+    image_with_text = image.copy()
+
+    # Put the text on the image
+    cv2.putText(
+        image_with_text, text, (x, y), font, font_scale, color, thickness, cv2.LINE_AA
+    )
+
+    return image_with_text
 
 
 ####################
@@ -84,7 +119,7 @@ def gaussianFunction(x, y, sigma):
 
 
 # Create a Gaussian kernel
-def create_gaussian_kernel(size, sigma):
+def create_gaussian_kernel(sigma, size):
     kernel = np.fromfunction(
         lambda x, y: gaussianFunction(x - (size - 1) / 2, y - (size - 1) / 2, sigma),
         (size, size),
@@ -98,34 +133,39 @@ def gaussian_filter(image, kernel):
 
 
 ####################
-# 4. Sobel Filter
+# 4. Box Filter
 ####################
 
 
-def sobel_filter(image):
-    # Define Sobel filter kernels for horizontal and vertical edges
-    sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32)
+def box_filter(image, kernel_size):
+    # Get the dimensions of the image
+    height, width = image.shape
 
-    sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32)
+    # Create an output image with the same dimensions as the input
+    output = np.zeros((height, width), dtype=np.uint8)
 
-    # Apply convolution to the image using the Sobel kernels
-    gradient_x = cv2.filter2D(image, -1, sobel_x)
-    gradient_y = cv2.filter2D(image, -1, sobel_y)
+    # Calculate the padding required based on the kernel size
+    pad = kernel_size // 2
 
-    # Combine the gradient magnitudes
-    gradient_magnitude = np.sqrt(gradient_x**2 + gradient_y**2)
+    # Iterate over each pixel in the image
+    for i in range(pad, height - pad):
+        for j in range(pad, width - pad):
+            # Extract the neighborhood around the current pixel
+            neighborhood = image[i - pad : i + pad + 1, j - pad : j + pad + 1]
 
-    # Perform normalization to map values to the 0-255 range
-    gradient_magnitude = cv2.normalize(
-        gradient_magnitude, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U
-    )
+            # Calculate the mean value of the neighborhood
+            mean_value = np.mean(neighborhood)
 
-    return gradient_magnitude
+            # Assign the mean value to the output image
+            output[i, j] = mean_value
+
+    return output
 
 
 ####################
 # 5. Laplacian Filter
 ####################
+
 
 def laplacian_filter(image):
     # Define the Laplacian filter kernel
@@ -149,36 +189,42 @@ sigma = 1.0
 
 
 # Apply filters
-mean_filtered = mean_filter(input_image, kernel_size)
-median_filtered = median_filter(input_image, kernel_size)
+mean_filtered = put_text_on_center(mean_filter(input_image, kernel_size), "Mean Filter")
+median_filtered = put_text_on_center(
+    median_filter(input_image, kernel_size), "Median Filter"
+)
 
 # Create the Gaussian kernel
-gaussian_kernel = create_gaussian_kernel(kernel_size, sigma)
+gaussian_kernel = create_gaussian_kernel(sigma, kernel_size)
 
-gaussian_filtered = gaussian_filter(input_image, gaussian_kernel)
+gaussian_filtered = put_text_on_center(
+    gaussian_filter(input_image, gaussian_kernel), "Gaussian Filter"
+)
 
-# sobel_filtered = sobel_filter(input_image)
-laplacian_filtered = laplacian_filter(input_image)
+box_filtered = put_text_on_center(box_filter(input_image, kernel_size), "Box Filter")
+laplacian_filtered = put_text_on_center(
+    laplacian_filter(input_image), "Laplacian Filter"
+)
 
 # Save the results in a single output file
 output_image = np.hstack(
     (
-        input_image,
+        put_text_on_center(input_image, "Input Image"),
         mean_filtered,
         median_filtered,
         gaussian_filtered,
-        # sobel_filtered,
+        box_filtered,
         laplacian_filtered,
     )
 )
 cv2.imwrite("output_image.jpg", output_image)
 
 # Display and save the individual filtered images if needed
-cv2.imwrite(".\output_images\mean_filtered.jpg", mean_filtered)
-cv2.imwrite(".\output_images\median_filtered.jpg", median_filtered)
-cv2.imwrite(".\output_images\gaussian_filtered.jpg", gaussian_filtered)
-# cv2.imwrite(".\output_images\sobel_filtered.jpg", sobel_filtered)
-cv2.imwrite(".\output_images\laplacian_filtered.jpg", laplacian_filtered)
+cv2.imwrite("./output_images/mean_filtered.jpg", mean_filtered)
+cv2.imwrite("./output_images/median_filtered.jpg", median_filtered)
+cv2.imwrite("./output_images/gaussian_filtered.jpg", gaussian_filtered)
+cv2.imwrite("./output_images/box_filtered.jpg", box_filtered)
+cv2.imwrite("./output_images/laplacian_filtered.jpg", laplacian_filtered)
 
 # Optionally, display the output image
 cv2.imshow("Output Image", output_image)
