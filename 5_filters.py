@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 
 # Load the input image
 input_image = cv2.imread("./input_images/image-1.jpg", cv2.IMREAD_GRAYSCALE)
