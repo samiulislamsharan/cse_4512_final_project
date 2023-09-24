@@ -119,10 +119,17 @@ def gaussianFunction(x, y, sigma):
 
 
 # Create a Gaussian kernel
-def create_gaussian_kernel(sigma, size):
+# This function generates a 2D matrix that represents a Gaussian kernel based on the provided sigma and size parameters, and it ensures that the kernel is properly normalized for subsequent image filtering operations.
+def create_gaussian_kernel(sigma, kernel_size):
+    # This lambda function defines the function to be applied to each coordinate (x, y).
+    # It calculates the Gaussian value at the specified (x, y) position in the kernel matrix using the gaussianFunction.
+    # The kernel matrix is of size (size, size).
+
     kernel = np.fromfunction(
-        lambda x, y: gaussianFunction(x - (size - 1) / 2, y - (size - 1) / 2, sigma),
-        (size, size),
+        lambda x, y: gaussianFunction(
+            x - (kernel_size - 1) / 2, y - (kernel_size - 1) / 2, sigma
+        ),
+        (kernel_size, kernel_size),
     )
     return kernel / np.sum(kernel)  # Normalize the kernel
 
