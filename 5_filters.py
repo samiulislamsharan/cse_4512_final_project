@@ -174,9 +174,20 @@ def box_filter(image, kernel_size):
 ####################
 
 
-def laplacian_filter(image):
-    # Define the Laplacian filter kernel
-    kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]], dtype=np.float32)
+def laplacian_filter(image, kernel_size):
+    kernel = np.zeros((kernel_size, kernel_size))
+
+    # Calculate the center position of the kernel
+    center = (kernel_size - 1) // 2
+
+    # Define the Laplacian kernel
+    kernel[center, center] = 4
+    kernel[center - 1, center] = -1
+    kernel[center + 1, center] = -1
+    kernel[center, center - 1] = -1
+    kernel[center, center + 1] = -1
+
+    kernel = kernel - np.mean(kernel)
 
     # Apply convolution to the image using the Laplacian kernel
     laplacianOutput = cv2.filter2D(image, -1, kernel)
@@ -210,7 +221,7 @@ gaussian_filtered = put_text_on_center(
 
 box_filtered = put_text_on_center(box_filter(input_image, kernel_size), "Box Filter")
 laplacian_filtered = put_text_on_center(
-    laplacian_filter(input_image), "Laplacian Filter"
+    laplacian_filter(input_image, kernel_size), "Laplacian Filter"
 )
 
 # Save the results in a single output file
