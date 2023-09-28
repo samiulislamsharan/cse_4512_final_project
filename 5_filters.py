@@ -56,20 +56,20 @@ def mean_filter(image, kernel_size):
     k = kernel_size // 2
 
     # Loop through the rows of the image (excluding the edges defined by k).
-    for i in range(k, height - k):
+    for row in range(k, height - k):
         # Loop through the columns of the image (excluding the edges defined by k).
-        for j in range(k, width - k):
+        for column in range(k, width - k):
             # Initialize a variable sum_val to store the sum of pixel values within the kernel.
             sum_val = 0
 
             # Loop through the rows and columns of the kernel centered at (i, j).
-            for m in range(-k, k + 1):
-                for n in range(-k, k + 1):
+            for kernelRow in range(-k, k + 1):
+                for kernelColumn in range(-k, k + 1):
                     # Accumulate the pixel values within the kernel.
-                    sum_val += image[i + m, j + n]
+                    sum_val += image[row + kernelRow, column + kernelColumn]
 
             # Compute the mean (average) value by dividing the sum by the total number of pixels in the kernel.
-            meanResult[i, j] = sum_val // (kernel_size**2)
+            meanResult[row, column] = sum_val // (kernel_size**2)
 
     # Return the resulting image after applying the mean filter.
     return meanResult
@@ -91,16 +91,18 @@ def median_filter(image, kernel_size):
     pad = kernel_size // 2
 
     # Iterate over each pixel in the image
-    for i in range(pad, height - pad):
-        for j in range(pad, width - pad):
+    for row in range(pad, height - pad):
+        for column in range(pad, width - pad):
             # Extract the neighborhood around the current pixel
-            neighborhood = image[i - pad : i + pad + 1, j - pad : j + pad + 1]
+            neighborhood = image[
+                row - pad : row + pad + 1, column - pad : column + pad + 1
+            ]
 
             # Calculate the median value of the neighborhood
             median_value = np.median(neighborhood)
 
             # Assign the median value to the output image
-            medianResult[i, j] = median_value
+            medianResult[row, column] = median_value
 
     return medianResult
 
@@ -154,16 +156,18 @@ def box_filter(image, kernel_size):
     pad = kernel_size // 2
 
     # Iterate over each pixel in the image
-    for i in range(pad, height - pad):
-        for j in range(pad, width - pad):
+    for row in range(pad, height - pad):
+        for column in range(pad, width - pad):
             # Extract the neighborhood around the current pixel
-            neighborhood = image[i - pad : i + pad + 1, j - pad : j + pad + 1]
+            neighborhood = image[
+                row - pad : row + pad + 1, column - pad : column + pad + 1
+            ]
 
             # Calculate the mean value of the neighborhood
             mean_value = np.mean(neighborhood)
 
             # Assign the mean value to the output image
-            output[i, j] = mean_value
+            output[row, column] = mean_value
 
     return output
 
